@@ -14,7 +14,7 @@ const HomeView = React.createClass({
     return (
       <View style={styles.container}>
         <PanView>
-          <Board colsNumber={15} rowsNumber={20}/>
+          <Board colsNumber={16} rowsNumber={25} text='Всё, что ни происходит, всегда так, как нужно, и только к лучшему.'/>
         </PanView>
       </View>
     );
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white'
+    backgroundColor: '#ffffe6'
   }
 });
 
