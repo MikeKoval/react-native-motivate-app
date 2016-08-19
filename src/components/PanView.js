@@ -23,8 +23,6 @@ const PanView = React.createClass({
     });
 
     this._styles.style = {
-
-      backgroundColor: 'yellow',
       position: 'absolute',
       left: 0,
       right: 0,

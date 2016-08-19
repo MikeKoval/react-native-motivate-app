@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   StyleSheet,
-  Text,
   View
 } from 'react-native';
 import PanView from '../../components/PanView';
+import Board from '../../components/Board';
 
 const HomeView = React.createClass({
   propTypes: {
@@ -14,7 +14,7 @@ const HomeView = React.createClass({
     return (
       <View style={styles.container}>
         <PanView>
-          <Text>Hello, World!</Text>
+          <Board colsNumber={15} rowsNumber={20}/>
         </PanView>
       </View>
     );
