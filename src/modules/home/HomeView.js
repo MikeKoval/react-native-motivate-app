@@ -13,8 +13,8 @@ const HomeView = React.createClass({
   render() {
     return (
       <View style={styles.container}>
-        <PanView>
-          <Board colsNumber={16} rowsNumber={25} text='Всё, что ни происходит, всегда так, как нужно, и только к лучшему.'/>
+        <PanView style={{flex: 1}}>
+          <Board style={{flex: 1}} colsNumber={25} rowsNumber={30} text='Всё, что ни происходит, всегда так, как нужно, и только к лучшему.'/>
         </PanView>
       </View>
     );

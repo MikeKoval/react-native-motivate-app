@@ -23,11 +23,9 @@ const PanView = React.createClass({
     });
 
     this._styles.style = {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      top: this._previousOffset,
-      bottom: -this._previousOffset
+      flex: 1,
+      backgroundColor: 'yellow',
+      transform: [{translateY: this._previousOffset}]
     };
   },
 
@@ -52,8 +50,7 @@ const PanView = React.createClass({
   // },
 
   _handlePanResponderMove(e, gestureState) {
-    this._styles.style.top = this._previousOffset + gestureState.dy;
-    this._styles.style.bottom = -this._styles.style.top;
+    this._styles.style.transform[0].translateY = this._previousOffset + gestureState.dy;
     this._updateNativeStyles();
   },
 

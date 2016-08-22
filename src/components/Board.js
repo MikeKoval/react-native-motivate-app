@@ -66,38 +66,42 @@ const Board = React.createClass({
 
     for (let ri = 0; ri < this.props.rowsNumber; ri++) {
       for (let ci = 0; ci < this.props.colsNumber; ci++) {
-        if (ri >= textStartRow &&
-          ri < textEndRow &&
-          textRows[ri - textStartRow][ci] &&
-          textRows[ri - textStartRow][ci] !== ' ') {
-          this._resultTextMat[ci][ri] = (
-            <Text key={ri} style={styles.char}>
-              {textRows[ri - textStartRow][ci]}
-            </Text>
-          );
+        let charTextStyle;
+        let char;
+        if (ri >= textStartRow && ri < textEndRow && textRows[ri - textStartRow][ci] && textRows[ri - textStartRow][ci] !== ' ') {
+          charTextStyle = styles.charText;
+          char = textRows[ri - textStartRow][ci];
         } else {
-          this._resultTextMat[ci][ri] = (
-            <Text key={ri} style={styles.randomChar}>
-              {String.fromCharCode(_.random(CYRILLIC_RANGE[0], CYRILLIC_RANGE[1]))}
-            </Text>
-          );
+          charTextStyle = styles.randomCharText;
+          char = String.fromCharCode(_.random(CYRILLIC_RANGE[0], CYRILLIC_RANGE[1]));
         }
+        this._resultTextMat[ci][ri] = (
+          <View key={ri} style={styles.charContainer}>
+            <View style={styles.char}>
+              <Text style={charTextStyle}>
+                {char}
+              </Text>
+            </View>
+          </View>
+        );
       }
     }
   },
 
   renderText() {
+    console.time('render');
     this.generateResultTextMat();
     let cols = new Array(this.props.rowsNumber);
     for (let ci = 0; ci < this._resultTextMat.length; ci++) {
       cols[ci] = (<View key={ci} style={styles.col}>{this._resultTextMat[ci]}</View>);
     }
+    console.timeEnd('render');
     return (<View style={styles.row}>{cols}</View>);
   },
 
   render() {
     return (
-      <View style={styles.container} renderToHardwareTextureAndroid={true} shouldRasterizeIOS={true}>
+      <View style={styles.container}>
         {this.renderText()}
       </View>
     );
@@ -105,31 +109,41 @@ const Board = React.createClass({
 });
 
 const styles = StyleSheet.create({
-  char: {
-    color: 'black',
-    fontFamily: 'monospace'
+  charContainer: {
+    overflow: 'visible',
+    alignItems: 'center',
+    justifyContent: 'space-between'
   },
-  randomChar: {
+  char: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  charText: {
+    color: 'black',
+    textAlign: 'center'
+
+  },
+  randomCharText: {
     color: '#e6e6cb',
-    fontFamily: 'monospace'
+    textAlign: 'center'
   },
   container: {
     flex: 1,
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
+    flexDirection: 'row'
   },
   row: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    margin: 0,
-    padding: 0
+    overflow: 'visible'
+
   },
   col: {
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'space-between',
-    margin: 0,
-    padding: 0
+    overflow: 'visible'
   }
 });
 
