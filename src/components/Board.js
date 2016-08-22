@@ -99,7 +99,7 @@ const Board = React.createClass({
 
   render() {
     return (
-      <View style={styles.container}>
+      <View style={styles.container} renderToHardwareTextureAndroid={true} shouldRasterizeIOS={true}>
         {this.renderText()}
       </View>
     );
