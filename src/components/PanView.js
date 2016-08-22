@@ -23,8 +23,6 @@ const PanView = React.createClass({
     });
 
     this._styles.style = {
-      flex: 1,
-      backgroundColor: 'yellow',
       transform: [{translateY: this._previousOffset}]
     };
   },

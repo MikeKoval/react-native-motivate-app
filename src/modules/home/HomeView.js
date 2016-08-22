@@ -13,8 +13,25 @@ const HomeView = React.createClass({
   render() {
     return (
       <View style={styles.container}>
-        <PanView style={{flex: 1}}>
-          <Board style={{flex: 1}} colsNumber={25} rowsNumber={30} text='Всё, что ни происходит, всегда так, как нужно, и только к лучшему.'/>
+        <PanView>
+          <View style={styles.boardContainer}>
+           <Board colsNumber={25} rowsNumber={30} text='Всё, что ни происходит, всегда так, как нужно, и только к лучшему.'/>
+          </View>
+          <View style={styles.boardContainer}>
+            <Board colsNumber={25} rowsNumber={30} text='Всё, что ни происходит, всегда так, как нужно, и только к лучшему.'/>
+          </View>
+          <View style={styles.boardContainer}>
+            <Board colsNumber={25} rowsNumber={30} text='Всё, что ни происходит, всегда так, как нужно, и только к лучшему.'/>
+          </View>
+          <View style={styles.boardContainer}>
+            <Board colsNumber={25} rowsNumber={30} text='Всё, что ни происходит, всегда так, как нужно, и только к лучшему.'/>
+          </View>
+          <View style={styles.boardContainer}>
+            <Board colsNumber={25} rowsNumber={30} text='Всё, что ни происходит, всегда так, как нужно, и только к лучшему.'/>
+          </View>
+          <View style={styles.boardContainer}>
+            <Board colsNumber={25} rowsNumber={30} text='Всё, что ни происходит, всегда так, как нужно, и только к лучшему.'/>
+          </View>
         </PanView>
       </View>
     );
@@ -24,9 +41,10 @@ const HomeView = React.createClass({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#ffffe6'
+  },
+  boardContainer: {
+    flex: 1
   }
 });
 

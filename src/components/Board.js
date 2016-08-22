@@ -89,13 +89,11 @@ const Board = React.createClass({
   },
 
   renderText() {
-    console.time('render');
     this.generateResultTextMat();
     let cols = new Array(this.props.rowsNumber);
     for (let ci = 0; ci < this._resultTextMat.length; ci++) {
       cols[ci] = (<View key={ci} style={styles.col}>{this._resultTextMat[ci]}</View>);
     }
-    console.timeEnd('render');
     return (<View style={styles.row}>{cols}</View>);
   },
 
@@ -109,10 +107,14 @@ const Board = React.createClass({
 });
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1
+  },
   charContainer: {
-    overflow: 'visible',
     alignItems: 'center',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    position: 'relative',
+    overflow: 'visible'
   },
   char: {
     flexDirection: 'row',
@@ -121,29 +123,20 @@ const styles = StyleSheet.create({
   charText: {
     color: 'black',
     textAlign: 'center'
-
   },
   randomCharText: {
     color: '#e6e6cb',
     textAlign: 'center'
   },
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    flexDirection: 'row'
-  },
   row: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    overflow: 'visible'
+    justifyContent: 'space-between'
 
   },
   col: {
-    flex: 1,
     flexDirection: 'column',
-    justifyContent: 'space-between',
-    overflow: 'visible'
+    justifyContent: 'space-between'
   }
 });
 
