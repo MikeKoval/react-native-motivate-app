@@ -15,6 +15,8 @@ const PanView = React.createClass({
   _height: 0,
   _styles: {},
   _animation: null,
+  _targetView: 0,
+  _touches: [],
 
   getInitialState() {
     return {
@@ -63,15 +65,30 @@ const PanView = React.createClass({
   },
 
   _handlePanResponderMove(e, gestureState) {
+    this._touches.push(_.assign({}, gestureState, {timestamp: Date.now()}));
     this.state.offset.setValue(this._previousOffset + gestureState.dy);
     //this._styles.style.transform[0].translateY = this._previousOffset + gestureState.dy;
     //this._updateNativeStyles();
   },
 
   _handlePanResponderEnd() {
-    let animationTargetView = Math.round(-this.state.offset.__getValue() / this._height);
+    let vy = 0;
+    if (this._touches.length > 2) {
+      let lastTouches = this._touches.slice(-5);
+      let dy = lastTouches[lastTouches.length - 1].moveY - lastTouches[0].moveY;
+      let dTime = lastTouches[lastTouches.length - 1].timestamp - lastTouches[0].timestamp;
+      vy = dy / (dTime ? dTime : 1) * 0.2;
+      this._touches = [];
+    }
+
+    //let animationTargetView = Math.round(-(this.state.offset.__getValue() + fling * this._height) / this._height);
+    let animationTargetView = Math.round(-this.state.offset.__getValue() / this._height - vy);
+
+
     animationTargetView = _.clamp(animationTargetView, 0, this.props.children.length - 1);
     const animationTargetOffset = -animationTargetView * this._height;
+
+    this._targetView = animationTargetOffset;
 
     this._previousOffset = animationTargetOffset;
     //this._previousOffset += gestureState.dy;
@@ -93,7 +110,7 @@ const PanView = React.createClass({
         removeClippedSubviews={true}
         onLayout={this._onLayout}
         {...this._panResponder.panHandlers}
-        style={{transform: [{translateY: this.state.offset}]}}
+        style={{transform: [{translateY: this.state.offset}], overflow: 'hidden'}}
         ref={component => this._root = component} //eslint-disable-line no-return-assign
         >
           {this.props.children}

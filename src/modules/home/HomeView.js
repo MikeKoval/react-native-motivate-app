@@ -26,6 +26,9 @@ const HomeView = React.createClass({
           <View style={styles.boardContainer}>
             <Board colsNumber={20} rowsNumber={25} text='Мир состоит из бездельников, которые хотят иметь деньги, не работая, и придурков, которые готовы работать, не богатея.'/>
           </View>
+          <View style={styles.boardContainer}>
+            <Board colsNumber={20} rowsNumber={25} text='Всё, что ни происходит, всегда так, как нужно, и только к лучшему.'/>
+          </View>
         </PanView>
       </View>
     );
