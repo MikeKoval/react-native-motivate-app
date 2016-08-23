@@ -4,37 +4,39 @@ import {
   PanResponder,
   Animated,
   StyleSheet,
-  Text
+  Dimensions
 } from 'react-native';
 
 import _ from 'lodash';
+import TextRow from './TextRow';
 
-const CYRILLIC_RANGE = [0x0410, 0x042F];
-//const LATIN_RANGER = [0x0041, 0x005A];
+const {height} = Dimensions.get('window');
+console.log(height);
 
-export function wordToArray(word) {
-  let arr = word.split('');
-  for (let i = 1; i < arr.length; i++) {
-    if (arr[i] === '.' || arr[i] === ',' || arr[i] === ':' || arr[i] === '!' || arr[i] === '?') {
-      arr.splice(i - 1, 2, arr[i - 1] + arr[i]);
-    }
-  }
-  return arr;
-}
+function CircularArray(array) {
+  let arr = array || [];
+  let top = 0;
+  let bottom = arr.length && arr.length - 1;
 
-export function splitTextToRowArrays(text, rowLength) {
-  let words = text.toUpperCase().split(' ').reverse();
-  const rows = [];
-  while (words.length) {
-    const row = [];
-    row.push(...wordToArray(words.pop()));
-    while (words.length && words[words.length - 1].length + row.length < rowLength) {
-      row.push(' ', ...wordToArray(words.pop()));
-    }
-    const padding = Math.floor(Math.abs(row.length - rowLength) / 2);
-    rows.push([...new Array(padding), ...row]);
-  }
-  return rows;
+  this.getTop = function getTop() {
+    let elem = arr[top];
+    bottom = top++;
+    if (top >= arr.length) { top = 0; }
+    return elem;
+  };
+
+  this.getBottom = function getBottom() {
+    let elem = arr[bottom];
+    top = bottom--;
+    if (bottom < 0) { bottom = arr.length - 1; }
+    return elem;
+  };
+
+  this.push = function push(elem) {
+    arr.push(elem);
+    top = 0;
+    bottom = arr.length - 1;
+  };
 }
 
 const PanView = React.createClass({
@@ -43,18 +45,17 @@ const PanView = React.createClass({
   },
   _previousOffset: 0,
   _boardHeight: 0,
+  _height: 0,
   _styles: {},
   _animation: null,
   _targetView: 0,
   _touches: [],
-  _resultTextMat: [],
-  _boards: [],
+  _rows: new CircularArray(),
   _upperRollThreshold: 0,
   _bottomRollThreshold: 0,
 
   getDefaultProps() {
     return {
-      colsNumber: 15,
       rowsNumber: 25,
       text: 'Hello, World!'
     };
@@ -78,53 +79,13 @@ const PanView = React.createClass({
     });
 
     this._styles.style = {
-      transform: [{translateY: this._previousOffset}],
-      overflow: 'hidden'
+      transform: [{translateY: this._previousOffset}]
     };
 
     this._resultTextMat = new Array(this.props.colsNumber);
     for (let i = 0; i < this._resultTextMat.length; i++) {
       this._resultTextMat[i] = new Array(this.props.rowsNumber);
     }
-  },
-
-  generateResultTextMat() {
-
-    const textRows = splitTextToRowArrays(this.props.text, this.props.colsNumber);
-    const textStartRow = Math.round(this.props.rowsNumber / 2 - textRows.length);
-    const textEndRow = textStartRow + textRows.length;
-
-    for (let ri = 0; ri < this.props.rowsNumber; ri++) {
-      for (let ci = 0; ci < this.props.colsNumber; ci++) {
-        let charTextStyle;
-        let char;
-        if (ri >= textStartRow && ri < textEndRow && textRows[ri - textStartRow][ci] && textRows[ri - textStartRow][ci] !== ' ') {
-          charTextStyle = styles.charText;
-          char = textRows[ri - textStartRow][ci];
-        } else {
-          charTextStyle = styles.randomCharText;
-          char = String.fromCharCode(_.random(CYRILLIC_RANGE[0], CYRILLIC_RANGE[1]));
-        }
-        this._resultTextMat[ci][ri] = (
-          <View key={ri} style={styles.charContainer}>
-            <View style={styles.char}>
-              <Text style={charTextStyle}>
-                {char}
-              </Text>
-            </View>
-          </View>
-        );
-      }
-    }
-  },
-
-  renderRandomText() {
-    this.generateResultTextMat();
-    let cols = [];
-    for (let ci = 0; ci < this._resultTextMat.length; ci++) {
-      cols[ci] = (<View key={ci} style={styles.col}>{this._resultTextMat[ci]}</View>);
-    }
-    return (<View style={styles.row}>{cols}</View>);
   },
 
   componentDidMount() {
@@ -161,59 +122,37 @@ const PanView = React.createClass({
   _handlePanResponderEnd(e, gestureState) {
     this._previousOffset += gestureState.dy;
 
-    // let vy = 0;
-    // if (this._touches.length > 2) {
-    //   let lastTouches = this._touches.slice(-5);
-    //   let dy = lastTouches[lastTouches.length - 1].moveY - lastTouches[0].moveY;
-    //   let dTime = lastTouches[lastTouches.length - 1].timestamp - lastTouches[0].timestamp;
-    //   vy = dy / (dTime ? dTime : 1) * 0.2;
-    //   this._touches = [];
-    // }
-    //
-    // //let animationTargetView = Math.round(-(this.state.offset.__getValue() + fling * this._boardHeight) / this._boardHeight);
-    // let animationTargetView = Math.round(-this.state.offset.__getValue() / this._boardHeight - vy);
-    //
-    //
-    // animationTargetView = _.clamp(animationTargetView, 0, this._boards.length - 1);
-    // const animationTargetOffset = -animationTargetView * this._boardHeight;
-    //
-    // this._targetView = animationTargetOffset;
-    //
-    // this._previousOffset = animationTargetOffset;
-    // //this._previousOffset += gestureState.dy;
-    // this._animation = Animated.spring(
-    //   this.state.offset,
-    //   {toValue: animationTargetOffset}
-    // );
-    // this._animation.start();
   },
 
   _onLayout(event) {
-    this._boardHeight = event.nativeEvent.layout.height / 3;
-    const style = {transform: [{translateY: -this._boardHeight}]};
-    this._root.setNativeProps({style});
-    this._upperRollThreshold = this._boardHeight / 2;
-    this._bottomRollThreshold = -this._boardHeight / 2;
+    this._height = event.nativeEvent.layout.height;
+    this._rowHeight = this._height / this.props.rowsNumber;
+    // this._boardHeight = event.nativeEvent.layout.height / 3;
+    // const style = {transform: [{translateY: -this._boardHeight}]};
+    // this._root.setNativeProps({style});
+    // this._upperRollThreshold = this._boardHeight / 2;
+    // this._bottomRollThreshold = -this._boardHeight / 2;
   },
 
   _roll(offset) {
-    for (var i = 0; i < this._boards.length; i++) {
-      const style = {transform: [{translateY: offset + this._boards[i].offset}]};
-      this._boards[i].component.setNativeProps({style});
-    }
+    this._root.setNativeProps({style: {transform: [{translateY: offset}]}});
+    // for (var i = 0; i < this._rows.length; i++) {
+    //   const style = {transform: [{translateY: offset + this._rows[i].offset}]};
+    //   this._rows[i].component.setNativeProps({style});
+    // }
     if (offset > this._upperRollThreshold) { this._rollUp(); }
-    else if (offset < this._bottomRollThreshold) { this._rollDown(); }
+    //else if (offset < this._bottomRollThreshold) { this._rollDown(); }
   },
 
   _rollUp() {
     console.log('rollup');
-    this._boards[2].offset -= this._boardHeight * 3;
-    let tmp = this._boards[2];
-    this._boards[2] = this._boards[1];
-    this._boards[1] = this._boards[0];
-    this._boards[0] = tmp;
-    this._upperRollThreshold += this._boardHeight;
-    this._bottomRollThreshold += this._boardHeight;
+    let bottomRow = this._rows.getBottom();
+    bottomRow.offset -= this._height - 100;
+    const style = {transform: [{translateY: bottomRow.offset}]};
+    bottomRow.component.setNativeProps({style});
+
+    this._upperRollThreshold += this._rowHeight;
+    this._bottomRollThreshold += this._rowHeight;
   },
 
   _rollDown() {
@@ -227,41 +166,30 @@ const PanView = React.createClass({
     this._bottomRollThreshold -= this._boardHeight;
   },
 
+  renderRows() {
+    let rows = [];
+    for (var i = 0; i < this.props.rowsNumber; i++) {
+      rows.push(<TextRow key={i} ref={component => this._rows.push({component, offset: 0})}/>);
+    }
+    return rows;
+  },
+
   //style={{transform: [{translateY: this.state.offset}], overflow: 'hidden'}}
   render() {
     //console.log('render');
+    //removeClippedSubviews={true}
     return (
-      <Animated.View
-        removeClippedSubviews={true}
-        onLayout={this._onLayout}
+      <View
+        style={styles.container}
         {...this._panResponder.panHandlers}
-        ref={component => this._root = component} //eslint-disable-line no-return-assign
-        >
+      >
         <View
-          style={styles.container}
-          renderToHardwareTextureAndroid={true}
-          shouldRasterizeIOS={true}
-          ref={component => this._boards[0] = {component, offset: 0}} //eslint-disable-line no-return-assign
-        >
-          {this.renderText()}
+          onLayout={this._onLayout}
+          ref={component => this._root = component} //eslint-disable-line no-return-assign
+          >
+          {this.renderRows()}
         </View>
-        <View
-          style={styles.container}
-          renderToHardwareTextureAndroid={true}
-          shouldRasterizeIOS={true}
-          ref={component => this._boards[1] = {component, offset: 0}} //eslint-disable-line no-return-assign
-        >
-          {this.renderText()}
-        </View>
-        <View
-          style={styles.container}
-          renderToHardwareTextureAndroid={true}
-          shouldRasterizeIOS={true}
-          ref={component => this._boards[2] = {component, offset: 0}} //eslint-disable-line no-return-assign
-        >
-          {this.renderText()}
-        </View>
-      </Animated.View>
+      </View>
     );
   }
 });
