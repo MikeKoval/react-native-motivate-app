@@ -34,29 +34,21 @@ const CYRILLIC_RANGE = [0x0410, 0x042F];
 //   return rows;
 // }
 
-const TextRow = React.createClass({
-  propTypes: {
-    length: PropTypes.number,
-    text: PropTypes.string
-  },
+class TextRow extends React.Component {
+  constructor(props) {
+    super(props);
+  }
 
   setNativeProps(nativeProps) {
     this._root.setNativeProps(nativeProps);
-  },
+  }
 
-  getDefaultProps() {
-    return {
-      length: 15,
-      text: ''
-    };
-  },
-
-  _root: null,
-  _chars: [],
+  _root = null;
+  _chars = [];
 
   setText() {
     // TODO: set text via this._chars
-  },
+  }
 
   renderRow() {
     const resultRow = [];
@@ -84,7 +76,7 @@ const TextRow = React.createClass({
       );
     }
     return resultRow;
-  },
+  }
 
   render() {
     return (
@@ -98,10 +90,22 @@ const TextRow = React.createClass({
       </View>
     );
   }
-});
+}
+
+TextRow.defaultProps = {
+  length: 15,
+  text: ''
+};
+
+TextRow.propTypes = {
+  length: PropTypes.number,
+  text: PropTypes.string
+};
+
 
 const styles = StyleSheet.create({
   charContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'space-between'
   },
