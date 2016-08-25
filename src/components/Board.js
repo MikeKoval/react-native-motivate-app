@@ -34,29 +34,28 @@ export function splitTextToRowArrays(text, rowLength) {
   return rows;
 }
 
-const Board = React.createClass({
-  propTypes: {
-    colsNumber: PropTypes.number,
-    rowsNumber: PropTypes.number,
-    text: PropTypes.string
-  },
-
-  _resultTextMat: [],
-
-  getDefaultProps() {
-    return {
-      colsNumber: 15,
-      rowsNumber: 25,
-      text: ''
-    };
-  },
+class Board extends React.Component {
+  constructor(props) {
+    super(props);
+  }
 
   componentWillMount() {
-    this._resultTextMat = new Array(this.props.colsNumber);
-    for (let i = 0; i < this._resultTextMat.length; i++) {
-      this._resultTextMat[i] = new Array(this.props.rowsNumber);
+    this._resultTextMat = [];
+    for (let i = 0; i < this.props.rowsNumber; i++) {
+      this._resultTextMat.push([]);
     }
-  },
+  }
+
+  _resultTextMat = [];
+  _root = null;
+
+  setNativeProps(nativeProps) {
+    this._root.setNativeProps(nativeProps);
+  }
+
+  translateY(yPos) {
+    this._root.setNativeProps({style: {transform: [{translateY: yPos}]}});
+  }
 
   generateResultTextMat() {
 
@@ -75,8 +74,8 @@ const Board = React.createClass({
           charTextStyle = styles.randomCharText;
           char = String.fromCharCode(_.random(CYRILLIC_RANGE[0], CYRILLIC_RANGE[1]));
         }
-        this._resultTextMat[ci][ri] = (
-          <View key={ri} style={styles.charContainer}>
+        this._resultTextMat[ri][ci] = (
+          <View key={ci} style={styles.charContainer}>
             <View style={styles.char}>
               <Text style={charTextStyle}>
                 {char}
@@ -86,36 +85,52 @@ const Board = React.createClass({
         );
       }
     }
-  },
+  }
 
   renderText() {
     this.generateResultTextMat();
-    let cols = new Array(this.props.rowsNumber);
-    for (let ci = 0; ci < this._resultTextMat.length; ci++) {
-      cols[ci] = (<View key={ci} style={styles.col}>{this._resultTextMat[ci]}</View>);
+    let rows = new Array(this.props.rowsNumber);
+    for (let ri = 0; ri < this._resultTextMat.length; ri++) {
+      rows[ri] = (<View key={ri} style={styles.row}>{this._resultTextMat[ri]}</View>);
     }
-    return (<View style={styles.row}>{cols}</View>);
-  },
+    return rows;
+  }
 
   render() {
     return (
-      <View style={styles.container} renderToHardwareTextureAndroid={true} shouldRasterizeIOS={true}>
+      <View
+        onLayout={this.props.onLayout}
+        style={styles.container}
+        ref={component => {this._root = component;}}
+        renderToHardwareTextureAndroid={true}
+        shouldRasterizeIOS={true}>
         {this.renderText()}
       </View>
     );
   }
-});
+}
+
+Board.propTypes = {
+  colsNumber: PropTypes.number,
+  rowsNumber: PropTypes.number,
+  text: PropTypes.string,
+  onLayout: PropTypes.func
+};
+
+Board.defaultProps = {
+  colsNumber: 15,
+  rowsNumber: 7,
+  text: ''
+};
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     overflow: 'hidden'
   },
   charContainer: {
     alignItems: 'center',
     justifyContent: 'space-between',
-    position: 'relative',
-    overflow: 'visible'
+    flex: 1
   },
   char: {
     flexDirection: 'row',
