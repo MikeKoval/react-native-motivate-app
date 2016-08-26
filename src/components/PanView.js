@@ -11,10 +11,9 @@ import Board from './Board';
 
 const BLOCK_NUM = 5;
 
-function CircularArray(array) {
-  let arr = array || [];
+function CircularArray(array = []) {
   let top = 0;
-  let bottom = arr.length && arr.length - 1;
+  let bottom = array.length && array.length - 1;
   let cycleCallbackTop;
   let cycleCallbackBottom;
 
@@ -24,49 +23,60 @@ function CircularArray(array) {
   };
 
   this.getTop = function getTop() {
-    let elem = arr[top];
+    let elem = array[top];
+    if (top === 0 && cycleCallbackTop) { cycleCallbackTop(); }
     bottom = top++;
-    if (top >= arr.length) {
+    if (top >= array.length) {
       top = 0;
-      if (cycleCallbackTop) { cycleCallbackTop(elem); }
     }
+
     return elem;
   };
 
   this.getBottom = function getBottom() {
-    let elem = arr[bottom];
+    let elem = array[bottom];
+    if (bottom === 0 && cycleCallbackBottom) { cycleCallbackBottom(); }
     top = bottom--;
     if (bottom < 0) {
-      bottom = arr.length - 1;
-      if (cycleCallbackBottom) { cycleCallbackBottom(elem); }
+      bottom = array.length - 1;
     }
     return elem;
   };
 
   this.setBottom = function setBottom(element) {
-    let oldBottom = arr[bottom];
-    arr[bottom] = element;
+    let oldBottom = array[bottom];
+    array[bottom] = element;
     return oldBottom;
   };
 
   this.setTop = function setTop(element) {
-    let oldTop = arr[top];
-    arr[top] = element;
+    let oldTop = array[top];
+    array[top] = element;
     return oldTop;
   };
 
   this.push = function push(elem) {
-    arr.push(elem);
+    array.push(elem);
     top = 0;
-    bottom = arr.length - 1;
+    bottom = array.length - 1;
   };
 
   this.get = function get(index) {
-    return arr[index];
+    return array[index];
+  };
+
+  this.replace = function set(index, newElem) {
+    let oldElem = array[index];
+    array[index] = newElem;
+    return oldElem;
   };
 
   this.getLength = function getLength() {
-    return arr.length;
+    return array.length;
+  };
+
+  this.toString = function toString() {
+    return array.toString();
   };
 }
 
@@ -90,6 +100,7 @@ const PanView = React.createClass({
   _isFling: false,
   _velocity: 0,
   _layout: false,
+  _cycles: 0,
 
   getDefaultProps() {
     return {
@@ -144,15 +155,26 @@ const PanView = React.createClass({
   },
 
   _onCycleTop() {
-    let textBlock = this._textBlocks.getTop();
-    textBlock.offset += this._blockHeight * (BLOCK_NUM + textBlock.posIndex);
-    this._blocks.setTop(textBlock);
+    // console.log('cycle '+ (this._cycles + 1));
+
+    let newBlock = this._textBlocks.getTop();
+    let oldBlock = this._blocks.replace(0, newBlock);
+    oldBlock.component.translateY(-this._blockHeight);
+
+    newBlock.offset = (this._cycles) * (this._blockHeight * BLOCK_NUM) - newBlock.posIndex * this._blockHeight;
+    // console.log('new offset ' + (this._cycles) * (this._blockHeight * BLOCK_NUM));
+    this._cycles++;
   },
 
   _onCycleBottom() {
-    let textBlock = this._textBlocks.getTop();
-    textBlock.offset += this._blockHeight * (BLOCK_NUM + textBlock.posIndex);
-    this._blocks.setTop(textBlock);
+    // console.log('cycle '+ (this._cycles - 1));
+
+    let newBlock = this._textBlocks.getBottom();
+    let oldBlock = this._blocks.replace(0, newBlock);
+    oldBlock.component.translateY(-this._blockHeight);
+    newBlock.offset = (this._cycles - 2) * (this._blockHeight * BLOCK_NUM) - newBlock.posIndex * this._blockHeight;
+    // console.log('new offset ' + (this._cycles-2) * (this._blockHeight * BLOCK_NUM));
+    this._cycles--;
   },
 
   _updateNativeStyles() {
@@ -245,7 +267,9 @@ const PanView = React.createClass({
     // console.log('rollUp');
     for (let i = 0; i < boardsNum; i++) {
       let bottomBlock = this._blocks.getBottom();
+
       bottomBlock.offset -= this._blockHeight * BLOCK_NUM;
+      // if (!('posIndex' in bottomBlock)) console.log(bottomBlock);
     }
     this._upperRollThreshold += this._blockHeight * boardsNum;
     this._bottomRollThreshold += this._blockHeight * boardsNum;
@@ -256,6 +280,7 @@ const PanView = React.createClass({
     for (let i = 0; i < boardsNum; i++) {
       let topBlock = this._blocks.getTop();
       topBlock.offset += this._blockHeight * BLOCK_NUM;
+      // if (!('posIndex' in topBlock)) console.log(topBlock);
     }
     this._upperRollThreshold -= this._blockHeight * boardsNum;
     this._bottomRollThreshold -= this._blockHeight * boardsNum;
@@ -274,7 +299,7 @@ const PanView = React.createClass({
 
   //style={{transform: [{translateY: this.state.offset}], overflow: 'hidden'}}
   render() {
-    console.log('render');
+    //console.log('render');
     //removeClippedSubviews={true}
     return (
       <View
