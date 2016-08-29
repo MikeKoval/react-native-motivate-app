@@ -50,11 +50,15 @@ class Board extends React.Component {
   _root = null;
 
   setNativeProps(nativeProps) {
-    this._root.setNativeProps(nativeProps);
+    if (this._root) {
+      this._root.setNativeProps(nativeProps);
+    }
   }
 
   translateY(yPos) {
-    this._root.setNativeProps({style: {transform: [{translateY: yPos}]}});
+    if (this._root) {
+      this._root.setNativeProps({style: {transform: [{translateY: yPos}]}});
+    }
   }
 
   generateResultTextMat() {
@@ -118,7 +122,7 @@ Board.propTypes = {
 };
 
 Board.defaultProps = {
-  colsNumber: 15,
+  colsNumber: 25,
   rowsNumber: 7,
   text: ''
 };

@@ -11,6 +11,60 @@ import Board from './Board';
 
 const BLOCK_NUM = 5;
 
+function TextBlocksArray(array = []) {
+  let pointer = array.length;
+  let cycleCallbackTop;
+  let cycleCallbackBottom;
+
+  this.setOnCycleCallback = function setOnCycleCallbacks(topCallback, bottomCallback) {
+    cycleCallbackTop = topCallback;
+    cycleCallbackBottom = bottomCallback;
+  };
+
+  this.getTop = function getTop() {
+    if (pointer + 1 < array.length) {
+      pointer++;
+    } else {
+      pointer = 0;
+    }
+    if (pointer === 0 && cycleCallbackTop) { cycleCallbackTop(); }
+    return array[pointer];
+  };
+
+  this.getBottom = function getBottom() {
+    if (pointer - 1 >= 0) {
+      pointer--;
+    } else {
+      pointer = array.length - 1;
+    }
+    if (pointer === 0 && cycleCallbackBottom) { cycleCallbackBottom(); }
+    return array[pointer];
+  };
+
+  this.push = function push(elem) {
+    array.push(elem);
+    pointer = array.length;
+  };
+
+  this.get = function get(index) {
+    return array[index];
+  };
+
+  this.replace = function set(index, newElem) {
+    let oldElem = array[index];
+    array[index] = newElem;
+    return oldElem;
+  };
+
+  this.getLength = function getLength() {
+    return array.length;
+  };
+
+  this.toString = function toString() {
+    return array.toString();
+  };
+}
+
 function CircularArray(array = []) {
   let top = 0;
   let bottom = array.length && array.length - 1;
@@ -94,7 +148,7 @@ const PanView = React.createClass({
   _touches: [],
   _rows: [],
   _blocks: new CircularArray(),
-  _textBlocks: new CircularArray(),
+  _textBlocks: new TextBlocksArray(),
   _upperRollThreshold: 0,
   _bottomRollThreshold: 0,
   _isFling: false,
@@ -142,16 +196,19 @@ const PanView = React.createClass({
   /* eslint-disable no-undef */
   componentDidMount() {
     //console.log('did mount');
-    const self = this;
-    requestAnimationFrame(function onRenderFrame() {
-      if (self._isFling) {
-        self._rollBy(self._velocity);
-        self._velocity *= 0.99;
-        if (Math.abs(self._velocity) < 1) { self._flingStop(); }
-      }
-      requestAnimationFrame(onRenderFrame);
-    });
     this._blocks.setOnCycleCallback(this._onCycleTop, this._onCycleBottom);
+    this._onRenderFrame(Date.now());
+  },
+
+  _onRenderFrame(lastFrameTimestamp) {
+    let timestamp = Date.now();
+    let dt = timestamp - lastFrameTimestamp;
+    if (this._isFling) {
+      this._rollBy(this._velocity * dt);
+      this._velocity *= (1 - 0.001 * dt) ;
+      if (Math.abs(this._velocity) < 0.0001) { this._flingStop(); }
+    }
+    requestAnimationFrame(() => this._onRenderFrame(timestamp));
   },
 
   _onCycleTop() {
@@ -160,7 +217,6 @@ const PanView = React.createClass({
     let newBlock = this._textBlocks.getTop();
     let oldBlock = this._blocks.replace(0, newBlock);
     oldBlock.component.translateY(-this._blockHeight);
-
     newBlock.offset = (this._cycles) * (this._blockHeight * BLOCK_NUM) - newBlock.posIndex * this._blockHeight;
     // console.log('new offset ' + (this._cycles) * (this._blockHeight * BLOCK_NUM));
     this._cycles++;
@@ -208,7 +264,7 @@ const PanView = React.createClass({
       let lastTouches = this._touches.slice(-5);
       let dy = lastTouches[lastTouches.length - 1].moveY - lastTouches[0].moveY;
       let dTime = lastTouches[lastTouches.length - 1].timestamp - lastTouches[0].timestamp;
-      this._velocity = dy / (dTime ? dTime : 1) * 10;
+      this._velocity = dy / (dTime ? dTime : 1);
       this._touches = [];
     }
 
@@ -231,7 +287,7 @@ const PanView = React.createClass({
     this._height = event.nativeEvent.layout.height;
     this._upperRollThreshold = 0;
     this._bottomRollThreshold = -this._blockHeight;
-    //this._rollTo(3000);
+    this._rollTo(500);
   },
 
   _onBlockLayout(event) {
