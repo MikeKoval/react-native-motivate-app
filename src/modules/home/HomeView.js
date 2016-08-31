@@ -24,7 +24,8 @@ const HomeView = React.createClass({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffe6'
+    backgroundColor: '#ffffe6',
+    justifyContent: 'space-between'
   },
   boardContainer: {
     flex: 1
